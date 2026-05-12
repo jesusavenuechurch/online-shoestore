@@ -24,7 +24,9 @@
                 <a href="#" class="hover:text-black transition-colors">Support</a>
             </div>
             <div class="flex items-center gap-6">
-                <span class="text-[12px] font-medium text-[#1D1D1F]">Bag (0)</span>
+                <a href="{{ route('cart') }}" class="text-[12px] font-medium text-[#1D1D1F] hover:text-[#007AFF] transition-colors">
+                    Bag ({{ app(\App\Services\CartService::class)->count() }})
+                </a>
             </div>
         </div>
     </nav>

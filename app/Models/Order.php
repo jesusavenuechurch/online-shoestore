@@ -12,8 +12,9 @@ class Order extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'customer_id', 'status_id', 'subtotal',
-        'shipping_cost', 'total', 'shipping_address', 'notes',
+        'customer_id', 'status_id', 'payment_method_id',
+        'payment_reference', 'subtotal', 'shipping_cost',
+        'total', 'shipping_address', 'notes',
     ];
 
     protected $casts = [
@@ -36,5 +37,10 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 }

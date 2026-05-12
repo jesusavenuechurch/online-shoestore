@@ -13,12 +13,13 @@ class Product extends Model
 
     protected $fillable = [
         'category_id', 'name', 'slug',
-        'description', 'brand', 'base_price', 'is_active',
+        'description', 'brand', 'base_price', 'is_active', 'images',
     ];
 
     protected $casts = [
         'base_price' => 'decimal:2',
         'is_active'  => 'boolean',
+        'images'     => 'array',  
     ];
 
     public function category(): BelongsTo

@@ -10,7 +10,7 @@
             <span class="text-[#86868B]">Step Different.</span>
         </h1>
         <p class="text-[19px] text-[#86868B] max-w-lg mx-auto leading-relaxed mb-10">
-            Authentic Nike. Every size. Every colour. Fast delivery across Lesotho.
+            Authentic Shoes. Every size. Every colour. Fast delivery.
         </p>
         <div class="flex justify-center gap-4">
             <a href="{{ route('shop') }}" class="bg-[#1D1D1F] text-white px-8 py-3 rounded-full text-[14px] font-medium hover:opacity-90 transition">
@@ -42,13 +42,18 @@
 
                         {{-- Product image --}}
                         <div class="w-full mb-6 transition-transform duration-500 group-hover:scale-105">
-                            @if ($product->images && count($product->images) > 0)
-                                <img src="{{ Storage::url($product->images[0]) }}"
-                                     class="w-full h-48 object-contain mix-blend-multiply"
-                                     alt="{{ $product->name }}">
+                            @php
+                                $images = is_array($product->images) ? $product->images : [];
+                                $hero = $images[0] ?? null;
+                            @endphp
+
+                            @if ($hero)
+                                <img src="{{ Storage::url($hero) }}"
+                                    class="w-full h-full object-contain mix-blend-multiply"
+                                    alt="{{ $product->name }}">
                             @else
-                                <div class="w-full h-48 flex items-center justify-center text-[#86868B] text-[12px]">
-                                    No image yet
+                                <div class="w-full h-full bg-[#F5F5F7] rounded-2xl flex items-center justify-center">
+                                    <span class="text-[#86868B] text-[12px]">No image</span>
                                 </div>
                             @endif
                         </div>

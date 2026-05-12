@@ -66,15 +66,78 @@
     >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
 
-            {{-- Left: Image --}}
-            <div class="bg-white rounded-[28px] border border-[#E8E8ED] p-12 flex items-center justify-center min-h-[480px]">
-                @if ($product->images && count($product->images) > 0)
-                    <img src="{{ Storage::url($product->images[0]) }}"
-                         class="w-full max-h-[420px] object-contain mix-blend-multiply transition-transform duration-500 hover:scale-105"
-                         alt="{{ $product->name }}">
-                @else
-                    <div class="text-[#86868B] text-[14px]">No image uploaded</div>
-                @endif
+            {{-- Left: Image Gallery --}}
+            <div x-data="{
+                images: {{ json_encode(array_map(fn($img) => Storage::url($img), array_filter($product->images ?? []))) }},
+                active: 0,
+                next() { this.active = (this.active + 1) % this.images.length },
+                prev() { this.active = (this.active - 1 + this.images.length) % this.images.length }
+            }">
+
+                {{-- Main image --}}
+                <div class="bg-white rounded-[28px] border border-[#E8E8ED] p-10 flex items-center justify-center min-h-[480px] relative overflow-hidden">
+
+                    <template x-if="images.length === 0">
+                        <div class="text-[#86868B] text-[14px]">No images uploaded</div>
+                    </template>
+
+                    <template x-for="(img, i) in images" :key="i">
+                        <img
+                            x-show="active === i"
+                            x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            :src="img"
+                            :alt="'{{ $product->name }} image ' + (i + 1)"
+                            class="w-full max-h-[420px] object-contain mix-blend-multiply">
+                    </template>
+
+                    {{-- Prev/Next arrows — only show if more than 1 image --}}
+                    <template x-if="images.length > 1">
+                        <div>
+                            <button @click="prev()"
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-white border border-[#E8E8ED] rounded-full flex items-center justify-center hover:border-[#1D1D1F] transition shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <button @click="next()"
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-white border border-[#E8E8ED] rounded-full flex items-center justify-center hover:border-[#1D1D1F] transition shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
+
+                    {{-- Dot indicators --}}
+                    <template x-if="images.length > 1">
+                        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                            <template x-for="(img, i) in images" :key="i">
+                                <button @click="active = i"
+                                        :class="active === i ? 'bg-[#1D1D1F] w-5' : 'bg-[#E8E8ED] w-2'"
+                                        class="h-2 rounded-full transition-all duration-300">
+                                </button>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Thumbnails --}}
+                <template x-if="images.length > 1">
+                    <div class="flex gap-3 mt-4 overflow-x-auto pb-1">
+                        <template x-for="(img, i) in images" :key="i">
+                            <button @click="active = i"
+                                    :class="active === i
+                                        ? 'border-[#1D1D1F]'
+                                        : 'border-[#E8E8ED] hover:border-[#86868B]'"
+                                    class="flex-shrink-0 w-16 h-16 rounded-2xl border-2 overflow-hidden bg-white transition-all duration-200">
+                                <img :src="img" class="w-full h-full object-contain mix-blend-multiply p-1">
+                            </button>
+                        </template>
+                    </div>
+                </template>
+
             </div>
 
             {{-- Right: Details --}}
@@ -155,14 +218,21 @@
                 </p>
 
                 {{-- Add to Bag --}}
-                <button
-                    :disabled="!inStock"
-                    :class="inStock
-                        ? 'bg-[#1D1D1F] text-white hover:opacity-90'
-                        : 'bg-[#E8E8ED] text-[#86868B] cursor-not-allowed'"
-                    class="w-full py-4 rounded-full text-[15px] font-semibold transition-all duration-200 mb-3">
-                    <span x-text="!selectedSizeId ? 'Select a size' : (!inStock ? 'Out of Stock' : 'Add to Bag')"></span>
-                </button>
+                <form action="{{ route('cart.add') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="variant_id" :value="selectedVariant?.id ?? ''">
+                    <input type="hidden" name="quantity" value="1">
+
+                    <button
+                        type="submit"
+                        :disabled="!inStock || !selectedSizeId"
+                        :class="(inStock && selectedSizeId)
+                            ? 'bg-[#1D1D1F] text-white hover:opacity-90'
+                            : 'bg-[#E8E8ED] text-[#86868B] cursor-not-allowed'"
+                        class="w-full py-4 rounded-full text-[15px] font-semibold transition-all duration-200 mb-3">
+                        <span x-text="!selectedSizeId ? 'Select a size' : (!inStock ? 'Out of Stock' : 'Add to Bag')"></span>
+                    </button>
+                </form>
 
                 <button class="w-full py-4 rounded-full border border-[#E8E8ED] text-[15px] font-medium text-[#1D1D1F] hover:border-[#1D1D1F] transition-all duration-200">
                     Save to Wishlist

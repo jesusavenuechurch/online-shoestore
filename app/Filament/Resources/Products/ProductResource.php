@@ -96,16 +96,21 @@ class ProductResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Section::make('Images')
-                    ->collapsed()
-                    ->schema([
-                        FileUpload::make('images')
-                            ->multiple()
-                            ->image()
-                            ->imageEditor()
-                            ->reorderable()
-                            ->columnSpanFull(),
-                    ]),
+                    Section::make('Images')
+                        ->collapsed()
+                        ->schema([
+                            FileUpload::make('images')
+                                ->disk('public')                    // explicit public disk
+                                ->directory('products')             // saves to storage/app/public/products/
+                                ->multiple()
+                                ->image()
+                                ->imageEditor()
+                                ->reorderable()
+                                ->maxFiles(13)
+                                ->panelLayout('grid')
+                                ->columnSpanFull()
+                                ->preserveFilenames(),
+                        ]),
             ]);
     }
 
